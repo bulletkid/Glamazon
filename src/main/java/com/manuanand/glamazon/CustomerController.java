@@ -1,7 +1,6 @@
 package com.manuanand.glamazon;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,7 @@ public class CustomerController {
 	///
 	@PostMapping(path="/addCustomer") // Map ONLY POST Requests
 	public @ResponseBody String addCustomer (@RequestParam String name, 
-			String email, String password,
+			@RequestParam String email, @RequestParam String password,
 			@RequestParam(required = false) Date birthDate,
 			@RequestParam(required = false) String address,
 			@RequestParam(required = false) String phone,
@@ -40,7 +39,7 @@ public class CustomerController {
 	@PostMapping(path="/updateCustomer") // Map ONLY POST Requests
 	public @ResponseBody String addCustomer (@RequestParam Integer customerId,
 			@RequestParam(required = false) String name, 
-			String email, String password,
+			@RequestParam(required = false) String email, @RequestParam(required = false) String password,
 			@RequestParam(required = false) Date birthDate,
 			@RequestParam(required = false) String address,
 			@RequestParam(required = false) String phone,
@@ -54,6 +53,21 @@ public class CustomerController {
 				return "No customer with ID #" +customerId;
 			} else {
 				Customer newCustomer = customer.get();
+
+				// Copy required fields from newCustomer if they aren't specified in update case
+				if ((name == null) && (newCustomer.getName() != null)) {
+					name = newCustomer.getName();
+				}
+				
+				if ((email == null) && (newCustomer.getEmail() != null)) {
+					email= newCustomer.getEmail();
+				}
+				
+				if ((password == null) && (newCustomer.getPassword() != null)) {
+					password = newCustomer.getPassword();
+				}
+				// End copy from original object
+		
 				newCustomer = 
 						populateCustomer(newCustomer, name, email, password, birthDate, address, phone, preferredCateories);
 				customerRepository.save(newCustomer);
@@ -75,8 +89,6 @@ public class CustomerController {
 	@GetMapping(path="/getCustomerById")
 	public @ResponseBody Customer getCustomerById(@RequestParam int id) {
 		
-		System.out.println("ID passed is " +id);
-		
 		Optional<Customer> customer = customerRepository.findById(id);
 		if (!customer.isEmpty()) {
 			return customer.get();
@@ -84,7 +96,6 @@ public class CustomerController {
 		
 		return null;
 	}
-	
 	
 	///
 	/// Helper Methods
